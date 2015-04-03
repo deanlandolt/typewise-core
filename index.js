@@ -10,14 +10,14 @@ var base = {}
 // helper utilities
 //
 
-function _valueOf(source) {
-  return source == null ? source : source.valueOf()
+function _valueOf(instance) {
+  return instance == null ? instance : instance.valueOf()
 }
 
 var _toString = Object.prototype.toString
 
-function _isObject(source) {
-  return source && _toString.call(source) === '[object Object]'
+function _isObject(instance) {
+  return instance && _toString.call(instance) === '[object Object]'
 }
 
 //
@@ -110,15 +110,15 @@ base.invalid = function (a, b) {
 //
 
 base.invalid.NAN = {
-  is: function (source) {
-    var valueOf = _valueOf(source)
+  is: function (instance) {
+    var valueOf = _valueOf(instance)
     return valueOf !== valueOf
   }
 }
 
 base.invalid.ERROR = {
-  is: function (source) {
-    return source && source instanceof Error
+  is: function (instance) {
+    return instance && instance instanceof Error
   }
 }
 
@@ -135,8 +135,8 @@ var HIGH = base.boundary.HIGH = {
     if (HIGH.is(b))
       return -1
   },
-  is: function (source) {
-    return source === HIGH
+  is: function (instance) {
+    return instance === HIGH
   }
 }
 
@@ -147,8 +147,8 @@ var LOW = base.boundary.LOW = {
     if (LOW.is(b))
       return 1
   },
-  is: function (source) {
-    return source === LOW
+  is: function (instance) {
+    return instance === LOW
   }
 }
 
@@ -169,36 +169,36 @@ var sorts = base.sorts = {}
 
 sorts.UNDEFINED = {
   compare: comparators.inequality,
-  is: function (source) {
-    return source === void 0
+  is: function (instance) {
+    return instance === void 0
   }
 }
 
 sorts.NULL = {
   compare: comparators.inequality,
-  is: function (source) {
-    return source === null
+  is: function (instance) {
+    return instance === null
   }
 }
 
 sorts.BOOLEAN = {
   compare: comparators.inequality,
-  is: function (source, typeOf) {
-    return (typeOf || typeof source) === 'boolean'
+  is: function (instance, typeOf) {
+    return (typeOf || typeof instance) === 'boolean'
   }
 }
 
 sorts.NUMBER = {
   compare: comparators.difference,
-  is: function (source, typeOf) {
-    return (typeOf || typeof source) === 'number'
+  is: function (instance, typeOf) {
+    return (typeOf || typeof instance) === 'number'
   }
 }
 
 sorts.DATE = {
   compare: comparators.difference,
-  is: function (source) {
-    return source instanceof Date && source.valueOf() === source.valueOf()
+  is: function (instance) {
+    return instance instanceof Date && instance.valueOf() === instance.valueOf()
   }
 }
 
@@ -209,15 +209,15 @@ sorts.BINARY = {
 
 sorts.STRING = {
   compare: comparators.inequality,
-  is: function (source, typeOf) {
-    return (typeOf || typeof source) === 'string'
+  is: function (instance, typeOf) {
+    return (typeOf || typeof instance) === 'string'
   }
 }
 
 sorts.ARRAY = {
   compare: comparators.generic.elementwise(base.compare),
-  is: function (source) {
-    return Array.isArray(source)
+  is: function (instance) {
+    return Array.isArray(instance)
   }
 }
 
