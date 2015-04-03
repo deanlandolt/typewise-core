@@ -4,7 +4,8 @@
   "description": "Core typewise type system functionality",
   "main": "index.js",
   "dependencies": {
-    "bops": "~0.1"
+    "bops": "~0.1",
+    "immutable": "^3.7.1"
   },
   "devDependencies": {
     "tape": "~1.0"
