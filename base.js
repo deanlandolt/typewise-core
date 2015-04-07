@@ -40,7 +40,7 @@ base.compare = function (a, b) {
   // short circuit for boundary types
   //
   var result
-  if (result = base.boundary.compare(a, b))
+  if (result = base.bound.compare(a, b))
     return result
 
   //
@@ -126,40 +126,54 @@ base.invalid.ERROR = {
 // definitions for boundary types, unserializable as values
 //
 
-base.boundary = {}
+base.bound = {}
 
-var MAX = base.boundary.max = {
-  compare: function (a, b) {
-    if (MAX.is(a))
-      return MAX.is(b) ? 0 : 1
-    if (MAX.is(b))
-      return -1
-  },
-  is: function (instance) {
-    return instance === MAX
-  }
+var TOP = base.bound.upper = {}
+TOP.compare = function (a, b) {
+  if (TOP.is(a))
+    return TOP.is(b) ? 0 : 1
+  if (TOP.is(b))
+    return -1
+}
+TOP.is = function (instance) {
+  return instance === TOP
 }
 
-var MIN = base.boundary.min = {
-  compare: function (a, b) {
-    if (MIN.is(a))
-      return MIN.is(b) ? 0 : -1
-    if (MIN.is(b))
-      return 1
-  },
-  is: function (instance) {
-    return instance === MIN
-  }
+var BOTTOM = base.bound.lower = {}
+BOTTOM.compare = function (a, b) {
+  if (BOTTOM.is(a))
+    return BOTTOM.is(b) ? 0 : -1
+  if (BOTTOM.is(b))
+    return 1
+}
+BOTTOM.is = function (instance) {
+  return instance === BOTTOM
+}
+
+base.bound.is = function (instance) {
+  return TOP.is(instance) || BOTTOM.is(instance)
 }
 
 //
 // compare two values against top level boundaries (if one is a boundary)
 //
-base.boundary.compare = function (a, b) {
-  if (MAX.is(a) || MAX.is(b))
-    return MAX.compare(a, b)
-  if (MIN.is(a) || MIN.is(b))
-    return MIN.compare(a, b)
+base.bound.compare = function (a, b) {
+  if (TOP.is(a) || TOP.is(b))
+    return TOP.compare(a, b)
+  if (BOTTOM.is(a) || BOTTOM.is(b))
+    return BOTTOM.compare(a, b)
+}
+
+//
+// helper to register fixed (nullary) types
+//
+function fixed(value) {
+  return {
+    is: function (instance) {
+      return instance === value
+    },
+    value: value
+  }
 }
 
 //
@@ -167,67 +181,114 @@ base.boundary.compare = function (a, b) {
 //
 var sorts = base.sorts = {}
 
-sorts.void = {
-  compare: collation.inequality,
-  is: function (instance) {
-    return instance === void 0
-  },
-  value: void 0
+sorts.void = fixed()
+sorts.void.compare = collation.inequality
+
+sorts.null = fixed(null)
+sorts.null.compare = collation.inequality
+
+var BOOLEAN = sorts.boolean = {}
+BOOLEAN.compare = collation.inequality
+BOOLEAN.is = function (instance, typeOf) {
+  return (typeOf || typeof instance) === 'boolean'
 }
 
-sorts.null = {
-  compare: collation.inequality,
-  is: function (instance) {
-    return instance === null
-  },
-  value: null
+BOOLEAN.sorts = {}
+BOOLEAN.sorts.true = fixed(true)
+BOOLEAN.sorts.false = fixed(false)
+
+BOOLEAN.bound = {}
+BOOLEAN.bound.lower = sorts.boolean.sorts.false,
+BOOLEAN.bound.upper = sorts.boolean.sorts.true
+
+
+var NUMBER = sorts.number = {}
+NUMBER.compare = collation.difference
+NUMBER.is = function (instance, typeOf) {
+  return (typeOf || typeof instance) === 'number'
 }
 
-sorts.boolean = {
-  compare: collation.inequality,
-  is: function (instance, typeOf) {
-    return (typeOf || typeof instance) === 'boolean'
-  }
+NUMBER.sorts = {}
+NUMBER.sorts.max = fixed(Number.POSITIVE_INFINITY)
+NUMBER.sorts.min = fixed(Number.NEGATIVE_INFINITY)
+
+NUMBER.sorts.positive = {}
+NUMBER.sorts.positive.is = function (instance) {
+  return instance >= 0
 }
 
-sorts.number = {
-  compare: collation.difference,
-  is: function (instance, typeOf) {
-    return (typeOf || typeof instance) === 'number'
-  }
+NUMBER.sorts.negative = {}
+NUMBER.sorts.negative.is = function (instance) {
+  return instance < 0
 }
 
-sorts.date = {
-  compare: collation.difference,
-  is: function (instance) {
-    return instance instanceof Date && instance.valueOf() === instance.valueOf()
-  }
+NUMBER.bound = {}
+NUMBER.bound.lower = NUMBER.sorts.min,
+NUMBER.bound.upper = NUMBER.sorts.max
+
+
+var DATE = sorts.date = {}
+DATE.compare = collation.difference
+DATE.is = function (instance) {
+  return instance instanceof Date && instance.valueOf() === instance.valueOf()
 }
 
-sorts.binary = {
-  compare: collation.bitwise,
-  is: bops.is
+DATE.sorts = {}
+DATE.sorts.positive = {}
+DATE.sorts.positive.is = function (instance) {
+  return instance.valueOf() >= 0
 }
 
-sorts.string = {
-  compare: collation.inequality,
-  is: function (instance, typeOf) {
-    return (typeOf || typeof instance) === 'string'
-  }
+DATE.sorts.negative = {}
+DATE.sorts.negative.is = function (instance) {
+  return instance.valueOf() < 0
 }
 
-sorts.array = {
-  compare: collation.recursive.elementwise(base.compare),
-  is: function (instance) {
-    return Array.isArray(instance)
-  }
+DATE.bound = {}
+DATE.bound.lower = {}
+DATE.bound.upper = {}
+
+
+var BINARY = sorts.binary = {}
+BINARY.empty = bops.create([])
+BINARY.compare = collation.bitwise
+BINARY.is = bops.is
+
+BINARY.bound = {}
+BINARY.bound.lower = BINARY.empty
+BINARY.bound.upper = {}
+
+
+var STRING = sorts.string = {}
+STRING.empty = ''
+STRING.compare = collation.inequality
+STRING.is = function (instance, typeOf) {
+  return (typeOf || typeof instance) === 'string'
 }
 
-sorts.object = {
-  compare: collation.recursive.fieldwise(base.compare),
-  is: _isObject
-}
+STRING.bound = {}
+STRING.bound.lower = STRING.empty
+STRING.bound.upper = {}
 
+
+var ARRAY = sorts.array = {}
+ARRAY.empty = []
+ARRAY.compare = collation.recursive.elementwise(base.compare)
+ARRAY.is = Array.isArray
+
+ARRAY.bound = {}
+ARRAY.bound.lower = ARRAY.empty
+ARRAY.bound.upper = {}
+
+
+var OBJECT = sorts.object = {}
+OBJECT.empty = {}
+OBJECT.compare = collation.recursive.fieldwise(base.compare)
+OBJECT.is = _isObject
+
+OBJECT.bound = {}
+OBJECT.bound.lower = OBJECT.empty
+OBJECT.bound.upper = {}
 
 //
 // default order for instance checking in compare operations
