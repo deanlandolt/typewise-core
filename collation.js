@@ -1,28 +1,28 @@
 //
 // generic comparator implementations our types can use
 //
-var comparators = exports
+var collation = exports
 
 //
 // scalar comparisons
 //
-comparators.inequality = function (a, b) {
+collation.inequality = function (a, b) {
   return a < b ? -1 : ( a > b ? 1 : 0 )
 }
 
-comparators.difference = function (a, b) {
+collation.difference = function (a, b) {
   return a - b
 }
 
 //
-// generic comparators are higher order functions that return comparators
+// recursive collations have to be provided a collation function to delegate to
 //
-comparators.generic = {}
+collation.recursive = {}
 
 //
 // element by element (comparison for list-like structures
 //
-comparators.generic.elementwise = function (compare, shortlex) {
+collation.recursive.elementwise = function (compare, shortlex) {
   return function (a, b) {
     var aLength = a.length
     var bLength = b.length
@@ -46,7 +46,7 @@ comparators.generic.elementwise = function (compare, shortlex) {
 //
 // field by field comparison of record-like structures
 //
-comparators.generic.fieldwise = function (compare, shortlex) {
+collation.recursive.fieldwise = function (compare, shortlex) {
   return function (a, b) {
     var aKeys = Object.keys(a)
     var bKeys = Object.keys(b)
@@ -81,5 +81,5 @@ comparators.generic.fieldwise = function (compare, shortlex) {
 //
 // elementwise compare with inequality can be used for binary equality
 //
-comparators.bytewise = comparators.generic.elementwise(exports.inequality)
+collation.bitwise = collation.recursive.elementwise(exports.inequality)
 

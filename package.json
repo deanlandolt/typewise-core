@@ -4,8 +4,7 @@
   "description": "Core typewise type system functionality",
   "main": "index.js",
   "dependencies": {
-    "bops": "~0.1",
-    "immutable": "^3.7.1"
+    "bops": "~0.1"
   },
   "devDependencies": {
     "tape": "~1.0"
@@ -32,25 +31,9 @@
   ],
   "author": "Dean Landolt <dean@deanlandolt.com>",
   "license": "MIT",
-  "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/deanlandolt/typewise/issues"
   },
   "homepage": "https://github.com/deanlandolt/typewise-core",
-  "testling": {
-    "files": "test/*.js",
-    "browsers": [
-      "ie/8..latest",
-      "firefox/17..latest",
-      "firefox/nightly",
-      "chrome/22..latest",
-      "chrome/canary",
-      "opera/12..latest",
-      "opera/next",
-      "safari/5.1..latest",
-      "ipad/6.0..latest",
-      "iphone/6.0..latest",
-      "android-browser/4.2..latest"
-    ]
-  }
+  "readmeFilename": "README.md"
 }

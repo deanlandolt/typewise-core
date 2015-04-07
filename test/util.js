@@ -1,5 +1,3 @@
-'use strict';
-
 var bops = require('bops');
 
 var util = exports;
@@ -55,7 +53,7 @@ var samples = {
     new Date(1000000000000),
     new Date('2001-09-09T01:46:40.001Z')
   ],
-  buffer: [
+  binary: [
     bops.create([]),
     bops.create([ 0 ]),
     bops.create([ 0, 0 ]),
@@ -111,7 +109,7 @@ util.getArraySample = function(depth) {
   // TODO: clean this up
   var sample = util.getSample();
   //
-  // pop off undefined
+  // pop off void
   //
   sample.pop();
   if (!depth)
@@ -122,7 +120,7 @@ util.getArraySample = function(depth) {
   });
 
   //
-  // add array sample, then add back undefined to ensure its at the end
+  // add array sample, then add back void to ensure its at the end
   //
   sample.push([ util.getArraySample(depth - 1) ]);
   sample.push(void 0);
