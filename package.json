@@ -1,13 +1,10 @@
 {
   "name": "typewise-core",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Core typewise type system functionality",
   "main": "index.js",
-  "devDependencies": {
-    "tape": "~1.0"
-  },
   "scripts": {
-    "test": "tape test"
+    "test": "tape test | faucet"
   },
   "repository": {
     "type": "git",
@@ -32,5 +29,8 @@
     "url": "https://github.com/deanlandolt/typewise/issues"
   },
   "homepage": "https://github.com/deanlandolt/typewise-core",
-  "readmeFilename": "README.md"
+  "devDependencies": {
+    "faucet": "0.0.1",
+    "tape": "^1.0"
+  }
 }
