@@ -1,4 +1,3 @@
-var bops = require('bops')
 var collation = require('./collation')
 
 //
@@ -250,9 +249,9 @@ DATE.bound.upper = {}
 
 
 var BINARY = sorts.binary = {}
-BINARY.empty = bops.create([])
+BINARY.empty = new Buffer([])
 BINARY.compare = collation.bitwise
-BINARY.is = bops.is
+BINARY.is = Buffer.isBuffer
 
 BINARY.bound = {}
 BINARY.bound.lower = BINARY.empty
