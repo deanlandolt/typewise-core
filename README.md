@@ -6,7 +6,7 @@ A stripped down [typewise](https://github.com/deanlandolt/typewise) profile cont
 
 ## Issues
 
-Issues should be reported on [here](https://github.com/deanlandolt/bytewise/issues).
+Issues should be reported [here](https://github.com/deanlandolt/bytewise/issues).
 
 
 ## License
