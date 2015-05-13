@@ -26,7 +26,7 @@
   "author": "Dean Landolt <dean@deanlandolt.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/deanlandolt/typewise/issues"
+    "url": "https://github.com/deanlandolt/bytewise/issues"
   },
   "homepage": "https://github.com/deanlandolt/typewise-core",
   "devDependencies": {
