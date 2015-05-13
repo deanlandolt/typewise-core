@@ -81,5 +81,7 @@ collation.recursive.fieldwise = function (compare, shortlex) {
 //
 // elementwise compare with inequality can be used for binary equality
 //
-collation.bitwise = collation.recursive.elementwise(exports.inequality)
+collation.bitwise = Buffer.compare
+if (!typeof collation.bitwise === 'function')
+  collation.bitwise = collation.recursive.elementwise(exports.inequality)
 
