@@ -36,10 +36,10 @@ base.compare = function (a, b) {
     return 0
 
   //
-  // short circuit for boundary types
+  // short circuit for base bound types
   //
-  var result
-  if (result = base.bound.compare(a, b))
+  var result = base.bound.compare(a, b)
+  if (result !== undefined)
     return result
 
   //
@@ -85,9 +85,6 @@ base.compare = function (a, b) {
 // sort equality test
 //
 base.equal = function(a, b) {
-  //
-  // TOOD: optimize for certain types?
-  //
   return base.compare(a, b) === 0
 }
 
@@ -125,42 +122,52 @@ base.invalid.ERROR = {
 // definitions for boundary types, unserializable as values
 //
 
-base.bound = {}
-
-var TOP = base.bound.upper = {}
-TOP.compare = function (a, b) {
-  if (TOP.is(a))
-    return TOP.is(b) ? 0 : 1
-  if (TOP.is(b))
-    return -1
-}
-TOP.is = function (instance) {
-  return instance === TOP
+function BoundedKey(bound, upper, prefix) {
+  this.bound = bound
+  this.upper = !!upper
+  this.prefix = prefix
 }
 
-var BOTTOM = base.bound.lower = {}
-BOTTOM.compare = function (a, b) {
-  if (BOTTOM.is(a))
-    return BOTTOM.is(b) ? 0 : -1
-  if (BOTTOM.is(b))
-    return 1
-}
-BOTTOM.is = function (instance) {
-  return instance === BOTTOM
+function Boundary(sort) {
+  this.sort = sort
 }
 
-base.bound.is = function (instance) {
-  return TOP.is(instance) || BOTTOM.is(instance)
+Boundary.prototype.lower = function (prefix) {
+  return new BoundedKey(this, false, prefix)
+}
+
+Boundary.prototype.upper = function (prefix) {
+  return new BoundedKey(this, true, prefix)
+}
+
+Boundary.prototype.is = function (source) {
+  return source instanceof BoundedKey && source.sort === this.sort
+}
+
+Boundary.add = function (sort) {
+  sort.bound = new Boundary(sort)
+}
+
+Boundary.add(base)
+
+base.bound.getBoundary = function (source) {
+  return source instanceof BoundedKey && source.bound
 }
 
 //
-// compare two values against top level boundaries (if one is a boundary)
+// compare a values against top level bounds (assumes first arg is an instance)
 //
 base.bound.compare = function (a, b) {
-  if (TOP.is(a) || TOP.is(b))
-    return TOP.compare(a, b)
-  if (BOTTOM.is(a) || BOTTOM.is(b))
-    return BOTTOM.compare(a, b)
+  var aBound = base.bound.is(a)
+  var bBound = base.bound.is(b)
+  if (aBound) {
+    if (bBound && !a.upper === !b.upper)
+      return 0
+    return a.upper ? 1 : -1
+  }
+
+  if (bBound)
+    return -base.bound.compare(b, a)
 }
 
 //
@@ -180,7 +187,7 @@ function fixed(value) {
 //
 var sorts = base.sorts = {}
 
-sorts.void = fixed()
+sorts.void = fixed(void 0)
 sorts.void.compare = collation.inequality
 
 sorts.null = fixed(null)
@@ -196,9 +203,7 @@ BOOLEAN.sorts = {}
 BOOLEAN.sorts.true = fixed(true)
 BOOLEAN.sorts.false = fixed(false)
 
-BOOLEAN.bound = {}
-BOOLEAN.bound.lower = sorts.boolean.sorts.false,
-BOOLEAN.bound.upper = sorts.boolean.sorts.true
+Boundary.add(BOOLEAN)
 
 
 var NUMBER = sorts.number = {}
@@ -221,9 +226,7 @@ NUMBER.sorts.negative.is = function (instance) {
   return instance < 0
 }
 
-NUMBER.bound = {}
-NUMBER.bound.lower = NUMBER.sorts.min,
-NUMBER.bound.upper = NUMBER.sorts.max
+Boundary.add(NUMBER)
 
 
 var DATE = sorts.date = {}
@@ -243,9 +246,7 @@ DATE.sorts.negative.is = function (instance) {
   return instance.valueOf() < 0
 }
 
-DATE.bound = {}
-DATE.bound.lower = {}
-DATE.bound.upper = {}
+Boundary.add(DATE)
 
 
 var BINARY = sorts.binary = {}
@@ -253,9 +254,7 @@ BINARY.empty = new Buffer([])
 BINARY.compare = collation.bitwise
 BINARY.is = Buffer.isBuffer
 
-BINARY.bound = {}
-BINARY.bound.lower = BINARY.empty
-BINARY.bound.upper = {}
+Boundary.add(BINARY)
 
 
 var STRING = sorts.string = {}
@@ -265,9 +264,7 @@ STRING.is = function (instance, typeOf) {
   return (typeOf || typeof instance) === 'string'
 }
 
-STRING.bound = {}
-STRING.bound.lower = STRING.empty
-STRING.bound.upper = {}
+Boundary.add(STRING)
 
 
 var ARRAY = sorts.array = {}
@@ -275,19 +272,15 @@ ARRAY.empty = []
 ARRAY.compare = collation.recursive.elementwise(base.compare)
 ARRAY.is = Array.isArray
 
-ARRAY.bound = {}
-ARRAY.bound.lower = ARRAY.empty
-ARRAY.bound.upper = {}
+Boundary.add(ARRAY)
 
 
-var OBJECT = sorts.object = {}
-OBJECT.empty = {}
-OBJECT.compare = collation.recursive.fieldwise(base.compare)
-OBJECT.is = _isObject
+// var OBJECT = sorts.object = {}
+// OBJECT.empty = {}
+// OBJECT.compare = collation.recursive.fieldwise(base.compare)
+// OBJECT.is = _isObject
 
-OBJECT.bound = {}
-OBJECT.bound.lower = OBJECT.empty
-OBJECT.bound.upper = {}
+// Boundary.add(OBJECT)
 
 //
 // default order for instance checking in compare operations
