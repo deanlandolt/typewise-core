@@ -31,6 +31,6 @@
   "homepage": "https://github.com/deanlandolt/typewise-core",
   "devDependencies": {
     "faucet": "0.0.1",
-    "tape": "^1.0"
+    "tape": "^4.2.2"
   }
 }
